@@ -7,11 +7,12 @@ const connectDB = require('./db')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser');
 const cors = require("cors");
+const session = require('express-session')
 const { connectPassport, connectFacebook } = require('./utils/passport');
 
 
 
-app.use(require('express-session')({
+app.use(session({
     secret: 'dsaddghgajghgjajsa',
     resave: false,
     saveUninitialized: false
