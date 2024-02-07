@@ -17,6 +17,10 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
+
+
+app.use(cookieParser())
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -35,7 +39,7 @@ connectDB()
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use(cookieParser())
+
 app.use(express.json()) // for parsing application/json
 
 connectPassport()

@@ -9,7 +9,8 @@ const router = express.Router()
 
 router.get(
     '/list-category',
-    validate(categoryValidation.getCategory),
+    authMiddleware(['admin', 'seller']),
+    // validate(categoryValidation.getCategory),
     categoryController.getCategory
 )
 
@@ -22,7 +23,7 @@ router.get(
 router.post(
     '/create-category',
     validate(categoryValidation.createCategory),
-    // authMiddleware(['admin', 'seller']),
+    authMiddleware(['admin', 'seller']),
     categoryController.createCategory
 )
 

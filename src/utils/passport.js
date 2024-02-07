@@ -2,41 +2,41 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const passport = require('passport');
 const User = require('../model/user.model');
+const { accessRefreshToken } = require('../controller/users.controller');
 
 
-const connectPassport = () => {
+const connectPassport = async () => {
     try {
 
-        passport.use(new GoogleStrategy({
+        await passport.use(new GoogleStrategy({
             clientID: '139490470532-1d4d2idt2k9ucjuia6iol8fm0m9jvrk9.apps.googleusercontent.com',
             clientSecret: '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',
             callbackURL: "http://localhost:3000/v1/users/google/callback"
         },
-           async function (accessToken, refreshToken, profile, cb) {
+            async function (accessToken, refreshToken, profile, cb) {
                 // User.findOrCreate({ googleId: profile.id }, function (err, user) {
                 //     return cb(err, user);
                 // });
-
                 try {
                     const user = await User.findOne({ googleId: profile.id })
                     console.log(user);
                     if (!user) {
                         console.log('userauthhhhh');
-                       await User.create({
+                        const user = await User.create({
                             name: profile.displayName,
-                            googleId: profile.id
+                            googleId: profile.id,
+                            role: 'seller'
                         })
+
+                        const { accessToken, refreshToken } = await accessRefreshToken(user.id)
+
+                        user.refreshToken = refreshToken;
+                        user.save()
+
+                        return cb(null, user);
                     }
 
-                    passport.serializeUser(function (user, done) {
-                        done(null, user.id);
-                    });
-
-                    passport.deserializeUser(function (id, done) {
-                        User.findById(id, function (err, user) {
-                            done(err, user);
-                        });
-                    });
+                    
 
                     return cb(null, user);
 
@@ -45,6 +45,19 @@ const connectPassport = () => {
                 }
             }
         ));
+
+        passport.serializeUser(function (user, done) {
+            console.log('seriiiiiiiii', user.id);
+            done(null, user.id);
+        });
+
+        passport.deserializeUser(async function (id, done) {
+            console.log('dessssssss', id);
+
+            const user = await User.findById(id);
+
+            done(null, user);
+        });
 
     } catch (error) {
         console.log(error);
