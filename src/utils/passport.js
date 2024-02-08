@@ -28,7 +28,7 @@ const connectPassport = async () => {
                             role: 'seller'
                         })
 
-                        const { accessToken, refreshToken } = await accessRefreshToken(user.id)
+                        const { refreshToken } = await accessRefreshToken(user.id)
 
                         user.refreshToken = refreshToken;
                         user.save()

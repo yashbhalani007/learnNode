@@ -6,6 +6,9 @@ const validate = require('../../middleware/validate');
 const authMiddleware = require('../../middleware/auth');
 const { upload } = require('../../middleware/upload');
 const passport = require('passport');
+const { accessRefreshToken } = require('../../controller/users.controller');
+const { sendOtp, verifyOtp } = require('../../utils/twilioOtp');
+const { sendMail } = require('../../utils/nodeMailer');
 
 
 const router = express.Router()
@@ -37,47 +40,49 @@ const router = express.Router()
 // })
 
 router.post(
-    '/register',
-    upload.single('profile_pic'),
-    validate(UserValidation.registerUser),
-    userController.registerUser
+  '/register',
+  upload.single('profile_pic'),
+  validate(UserValidation.registerUser),
+  userController.registerUser
 )
 
 router.post(
-    '/updatedetail/:id',
-    upload.single('profile_pic'),
-    userController.updateUser
+  '/updatedetail/:id',
+  upload.single('profile_pic'),
+  userController.updateUser
 )
 
 router.post(
-    '/login',
-    validate(UserValidation.loginUser),
-    userController.loginUser
+  '/login',
+  validate(UserValidation.loginUser),
+  userController.loginUser
 )
 
 router.post(
-    '/generateNewTokens',
-    userController.generateNewTokens
+  '/generateNewTokens',
+  userController.generateNewTokens
 )
 
 router.post(
-    '/logout',
-    userController.logout
+  '/logout',
+  userController.logout
 )
 
 router.get('/google',
   passport.authenticate('google', { scope: ['profile'] }));
 
 router.get(
-    '/google/callback',
-    passport.authenticate('google', { failureRedirect: '/login' }),
-    function(req,res) {
-      console.log(req.isAuthenticated());
-      console.log(req.user);
-      console.log(req.session);
-
-      res.send('ok')
-    }
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  async function (req, res) {
+    console.log(req.isAuthenticated());
+    console.log(req.user);
+    console.log(req.session);
+    const { accessToken } = await accessRefreshToken(req.user._id)
+    console.log('asssssssss', accessToken);
+    res.cookie('AccessToken', accessToken, { httpOnly: true, secure: true })
+    res.send('ok')
+  }
 )
 
 router.get('/facebook',
@@ -85,11 +90,25 @@ router.get('/facebook',
 
 router.get('/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
-  function(req, res) {
+  function (req, res) {
     // Successful authentication, redirect home.
     res.redirect('/');
   });
 
+router.post(
+  '/sendOtp',
+  sendOtp
+)
+
+router.post(
+  '/verifyOtp',
+  verifyOtp
+)
+
+router.post(
+  '/sendMail',
+  sendMail
+)
 
 // router.get(
 //     '/protected-route',
@@ -110,7 +129,7 @@ router.get('/facebook/callback',
 // router.param("id", (req, res, next, id) => {
 //     let fData = Data.find((v) => v.id === parseInt(id))
 //     req.user = fData
-    
+
 //     next();
 // });
 
